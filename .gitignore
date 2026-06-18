@@ -8,4 +8,3 @@ dist/
 *.sqlite3
 *.db
 .DS_Store
-frontend/tsconfig.tsbuildinfo

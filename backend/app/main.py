@@ -20,6 +20,7 @@ from app.core.settings_service import (
 )
 from app.execution.service import ExecutionService
 from app.market_data.simulated import SimulatedGoldFeed
+from app.market_data.routing import provider_name_for_symbol
 from app.models.db import (
     Account, Instrument, Position, Signal, User, get_db, init_db,
 )
@@ -63,10 +64,28 @@ async def health():
 
 @app.get("/api/v1/market/quote/{symbol}")
 async def quote(symbol: str):
-    """Latest simulated price for a symbol (deterministic per minute bucket)."""
+    """Latest price for a symbol. The source is OANDA only when configured for
+    this symbol; otherwise simulated. For the quote endpoint we use the
+    simulated snapshot for a deterministic value, but we report which provider
+    WOULD serve the live stream so the UI/operator can see routing."""
+    source = provider_name_for_symbol(symbol)
     bars = SimulatedGoldFeed(seed=abs(hash(symbol)) % 1000).generate_bars(symbol, 60)
     last = bars[-1]
-    return {"symbol": symbol, "price": str(last.close), "time": last.time.isoformat()}
+    return {"symbol": symbol, "price": str(last.close),
+            "time": last.time.isoformat(), "source": source}
+
+
+@app.get("/api/v1/market/sources")
+async def market_sources():
+    """Show per-symbol provider routing and whether OANDA market data is
+    configured. Pure market-data info; ordering is unaffected and disabled."""
+    symbols = ["XAU_USD", "GC", "GLD"]
+    return {
+        "oanda_market_data_configured": settings.oanda_market_data_configured,
+        "oanda_env": settings.OANDA_ENV,
+        "routing": {s: provider_name_for_symbol(s) for s in symbols},
+        "note": "Market data only. Order placement is disabled regardless of source.",
+    }
 
 
 @app.get("/api/v1/dashboard/command-center")

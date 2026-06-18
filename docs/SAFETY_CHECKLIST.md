@@ -26,3 +26,11 @@ Everything: `make verify-phase15`
 
 Note: backtest Order/Position isolation (from the larger design) is OUT OF
 SCOPE for this MVP because the backtesting engine is not included.
+
+## Phase 16 additions (OANDA market data only)
+| # | Invariant | Verified by |
+|---|-----------|-------------|
+| 18 | OANDA-sourced price still executes via paper broker only | test_oanda_sourced_price_still_executes_via_paper_only |
+| 19 | OANDA data config does NOT make a live broker order-capable | test_oanda_configured_does_not_make_live_broker_order_capable |
+| 20 | OANDA broker stub still refuses place_order with data configured | test_oanda_broker_still_refuses_place_order_with_data_configured |
+| 21 | Parsing OANDA data never creates Order rows | test_no_orders_created_from_parsing_oanda_data |

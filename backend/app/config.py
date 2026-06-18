@@ -53,6 +53,21 @@ class Settings:
         )
         self.MAX_OPEN_POSITIONS = int(os.environ.get("MAX_OPEN_POSITIONS", "3"))
 
+        # OANDA market data ONLY (Phase 16). These never enable order placement;
+        # they gate whether the OANDA *price stream* is used for XAU_USD.
+        self.OANDA_API_KEY = os.environ.get("OANDA_API_KEY", "")
+        self.OANDA_ACCOUNT_ID = os.environ.get("OANDA_ACCOUNT_ID", "")
+        # practice | live  — refers to OANDA's pricing host, NOT our trading mode.
+        self.OANDA_ENV = os.environ.get("OANDA_ENV", "practice")
+        # Symbols OANDA is allowed to supply market data for. XAU_USD only by default.
+        self.OANDA_DATA_SYMBOLS = _csv("OANDA_DATA_SYMBOLS", ["XAU_USD"])
+
+    @property
+    def oanda_market_data_configured(self) -> bool:
+        """True only when both OANDA credentials are present. Market data only —
+        this has no bearing on order placement, which stays disabled in code."""
+        return bool(self.OANDA_API_KEY and self.OANDA_ACCOUNT_ID)
+
     @property
     def is_live_trading(self) -> bool:
         return self.TRADING_MODE in {
