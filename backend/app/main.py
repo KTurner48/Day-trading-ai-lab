@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, cast, String
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.auth import router as auth_router
@@ -100,7 +100,7 @@ async def command_center(db: AsyncSession = Depends(get_db),
         select(Signal).order_by(Signal.created_at.desc()).limit(1)
     )).scalar_one_or_none()
     pending = (await db.execute(
-        select(Signal).where(Signal.status == SignalStatus.PENDING_APPROVAL)
+        select(Signal).where(cast(Signal.status, String) == SignalStatus.PENDING_APPROVAL.value)
     )).scalars().all()
     return {
         "settings": {
