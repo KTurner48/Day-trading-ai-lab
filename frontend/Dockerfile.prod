@@ -1,0 +1,16 @@
+# Build the static bundle, then serve via nginx.
+# nginx.conf is provided at runtime by docker-compose.prod.yml (bind mount),
+# so the build context stays limited to the frontend directory.
+FROM node:20-slim AS build
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+FROM nginx:1.27-alpine AS runtime
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -q -O /dev/null http://127.0.0.1/healthz || exit 1
+CMD ["nginx", "-g", "daemon off;"]
